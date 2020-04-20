@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+
+    interceptee:
+        build: ./interceptee
+        # mount config if necessary
+        #        volumes: 
+        #            - 
+        networks:
+            nw:
+    
+    # is downstream in https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2018/may/testing-http2-only-web-services/
+    proxy-2-1:
+        image: nghttpx
+        networks:
+            nw:
+                aliases:
+                    - address-to.intercept.invalid
+                    - address2-to.intercept.invalid
+        ports:
+            - "443"
+        volumes: 
+            - /add/full/path/etc-nghttpx-2-1/:/etc/nghttpx/
+        
+        # if you don't want to add your burp CA to the container:
+        #command: ["nghttpx", "-k"]
+        command: ["nghttpx"]
+
+
+    # is upstream in https://www.nccgroup.trust/uk/about-us/newsroom-and-events/blogs/2018/may/testing-http2-only-web-services/
+    proxy-1-2:
+        image: nghttpx
+        networks:
+            nw2:
+        ports:
+            - "9080:443"
+        volumes: 
+            - /add/full/path/etc-nghttpx-1-2/:/etc/nghttpx/
+        # if you don't want to add your target CA to the container:
+        #command: ["nghttpx", "-k"]
+        command: ["nghttpx"]
+
+networks:
+    nw:
+    nw2:
